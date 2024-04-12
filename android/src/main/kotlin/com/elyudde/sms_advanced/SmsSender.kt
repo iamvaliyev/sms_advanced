@@ -91,7 +91,20 @@ internal class SmsSenderMethodHandler(
                 return
             }
         }
-        sms.sendTextMessage(address, null, body, sentPendingIntent, deliveredPendingIntent)
+        if (body.length <= 160){
+            sms.sendTextMessage(address, null, body, sentPendingIntent, deliveredPendingIntent)
+        }
+        else{
+            val parts = sms.divideMessage(body)
+            val sentIntents = ArrayList<PendingIntent>()
+            val deliveredIntents = ArrayList<PendingIntent>()
+
+            for (i in 0 until parts.size) {
+                sentIntents.add(PendingIntent.getBroadcast(context, 0, Intent("SMS_SENT"), PendingIntent.FLAG_IMMUTABLE))
+                deliveredIntents.add(PendingIntent.getBroadcast(context, 0, Intent("SMS_DELIVERED"), PendingIntent.FLAG_IMMUTABLE))
+            }
+            sms.sendMultipartTextMessage(address, null, parts, sentIntents, deliveredIntents)
+        }
         result.success(null)
     }
 
