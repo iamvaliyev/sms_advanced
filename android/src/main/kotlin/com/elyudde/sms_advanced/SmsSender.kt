@@ -16,6 +16,7 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.PluginRegistry.RequestPermissionsResultListener
 import java.util.*
+import android.util.Log
 
 
 /**
@@ -28,7 +29,8 @@ internal class SmsSenderMethodHandler(
     private val address: String,
     private val body: String,
     private val sentId: Int,
-    private val subId: Int?
+    private val subId: Int?,
+    private val forceMms: Boolean?
 ) :
     RequestPermissionsResultListener {
     private val permissionsList =
@@ -91,8 +93,9 @@ internal class SmsSenderMethodHandler(
                 return
             }
         }
-        if (body.length <= 160){
-            sms.sendTextMessage(address, null, body, sentPendingIntent, deliveredPendingIntent)
+        Log.d("DoctaSms", "forceMms:  $forceMms")
+        if (forceMms == null){
+          sms.sendTextMessage(address, null, body, sentPendingIntent, deliveredPendingIntent)
         }
         else{
             val parts = sms.divideMessage(body)
@@ -122,13 +125,14 @@ internal class SmsSender(val context: Context, private val binding: ActivityPlug
             val body = call.argument<Any>("body").toString()
             val sentId = call.argument<Int>("sentId")!!
             val subId = call.argument<Int>("subId")
+            val forceMms = call.argument<Boolean>("forceMms")
             if (address == null) {
                 result.error("#02", "missing argument 'address'", null)
             } else if (body == null) {
                 result.error("#02", "missing argument 'body'", null)
             } else {
                 val handler =
-                    SmsSenderMethodHandler(context, result, address, body, sentId, subId)
+                    SmsSenderMethodHandler(context, result, address, body, sentId, subId, forceMms)
                 binding.addRequestPermissionsResultListener(handler)
                 handler.handle(permissions)
             }
