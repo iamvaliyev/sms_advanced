@@ -320,7 +320,7 @@ class SmsSender {
   /// Take a message in argument + 2 functions that will be called on success or on error
   ///
   /// This function will not set automatically thread id, you have to do it
-  Future<SmsMessage?> sendSms(SmsMessage msg, {SimCard? simCard}) async {
+  Future<SmsMessage?> sendSms(SmsMessage msg, {SimCard? simCard, bool? forceMms }) async {
     if (msg.address == null || msg.body == null) {
       if (msg.address == null) {
         throw ("no given address");
@@ -336,6 +336,9 @@ class SmsSender {
     map['sentId'] = _sentId;
     if (simCard != null) {
       map['subId'] = simCard.slot;
+    }
+    if (forceMms != null) {
+      map['forceMms'] = forceMms;
     }
     _sentId += 1;
 
@@ -361,7 +364,10 @@ class SmsSender {
   Stream<SmsMessage?> get onSmsDelivered => _deliveredStreamController.stream;
 
   void _onSmsStateChanged(dynamic stateChange) {
-    int? id = _sentMessages.keys.first;
+    int? id = stateChange['sentId'];
+    if (id == 0){
+      id = _sentMessages.keys.last;
+    }
     if (_sentMessages.containsKey(id)) {
       switch (stateChange['state']) {
         case 'sent':
