@@ -367,6 +367,12 @@ class SmsSender {
     int? id = stateChange['sentId'];
     if (id == 0){
       id = _sentMessages.keys.last;
+      print("_Id plutot ici " + _sentMessages.keys.toString() + " donc " + _sentMessages.keys.last.toString());
+    }else{
+      if(!_sentMessages.containsKey(id)){
+        id = _sentMessages.keys.last;
+        print("_Id est plutot*** " + _sentMessages.keys.toString() + " donc: " + _sentMessages.keys.last.toString());
+      }
     }
     if (_sentMessages.containsKey(id)) {
       switch (stateChange['state']) {
@@ -389,6 +395,8 @@ class SmsSender {
             break;
           }
       }
+    }else{
+      print("ID innexistant, anormal");
     }
   }
 }
