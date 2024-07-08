@@ -6,7 +6,8 @@ import android.os.Build
 import android.telephony.TelephonyManager
 import androidx.annotation.RequiresApi
 import java.lang.reflect.InvocationTargetException
-
+import android.provider.Settings
+import java.util.UUID
 
 class TelephonyManager(private val context: Context) {
     private var manager: TelephonyManager? = null
@@ -21,9 +22,33 @@ class TelephonyManager(private val context: Context) {
     val simCount: Int
         get() = manager!!.phoneCount
 
+    fun generateDeviceIdentifier(): String {
+        val uniqueDevicePseudoID = "35" +
+            Build.BOARD.length % 10 +
+            Build.BRAND.length % 10 +
+            Build.DEVICE.length % 10 +
+            Build.DISPLAY.length % 10 +
+            Build.HOST.length % 10 +
+            Build.ID.length % 10 +
+            Build.MANUFACTURER.length % 10 +
+            Build.MODEL.length % 10 +
+            Build.PRODUCT.length % 10 +
+            Build.TAGS.length % 10 +
+            Build.TYPE.length % 10 +
+            Build.USER.length % 10
+        val serial = Build.getRadioVersion()
+        return UUID(uniqueDevicePseudoID.hashCode().toLong(), serial.hashCode().toLong()).toString()
+    }
+
     @RequiresApi(Build.VERSION_CODES.M)
     fun getSimId(slotId: Int): String {
-        return manager!!.getDeviceId(slotId)
+        val deviceId = try {
+            Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+        } catch (e: Exception) {
+            generateDeviceIdentifier()
+        } ?: UUID.randomUUID().toString()
+        return deviceId
+        //return manager!!.getDeviceId(slotId)
     }
 
     fun getSimState(slotId: Int): Int {

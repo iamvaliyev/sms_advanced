@@ -17,7 +17,7 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.PluginRegistry.RequestPermissionsResultListener
 import java.util.*
 import android.util.Log
-
+import android.telephony.SubscriptionManager
 
 /**
  * Created by crazygenius on 1/08/21.
@@ -83,6 +83,22 @@ internal class SmsSenderMethodHandler(
             deliveredIntent,
             PendingIntent.FLAG_IMMUTABLE
         )
+        Log.d("DoctaSms", "subId:  $subId")
+        //val subscriptionManager = SubscriptionManager.from(context)
+
+        val subscriptionManager = if (Build.VERSION.SDK_INT >= 28) {
+            context.getSystemService(SubscriptionManager::class.java)
+        } else {
+            SubscriptionManager.from(context) // Deprecated method for API level < 28
+        }
+
+        val subscriptionList = subscriptionManager.activeSubscriptionInfoList
+        val subscriptionIds = mutableListOf<Int>()
+        
+        for (subscriptionInfo in subscriptionList) {
+            subscriptionIds.add(subscriptionInfo.subscriptionId)
+        }
+        Log.d("DoctaSms", "subscriptionIds:  $subscriptionIds")
         val sms: SmsManager = if (subId == null) {
             SmsManager.getDefault()
         } else {
