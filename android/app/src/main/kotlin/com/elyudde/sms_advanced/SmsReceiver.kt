@@ -33,11 +33,18 @@ internal class SmsReceiver(val context: Context, private val binding: ActivityPl
         arrayOf(Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_SMS)
     private var sink: EventSink? = null
 
-    @TargetApi(Build.VERSION_CODES.KITKAT)
+//    @TargetApi(Build.VERSION_CODES.KITKAT)
     override fun onListen(arguments: Any?, events: EventSink) {
         receiver = createSmsReceiver(events)
-        context
-            .registerReceiver(receiver, IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION))
+//        context
+//            .registerReceiver(receiver, IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION))
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(receiver, IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION), Context.RECEIVER_EXPORTED)
+        } else {
+            context.registerReceiver(receiver, IntentFilter(Telephony.Sms.Intents.SMS_RECEIVED_ACTION))
+        }
+
         sink = events
         permissions.checkAndRequestPermission(permissionsList, Permissions.RECV_SMS_ID_REQ)
     }
@@ -47,14 +54,14 @@ internal class SmsReceiver(val context: Context, private val binding: ActivityPl
         receiver = null
     }
 
-    @TargetApi(Build.VERSION_CODES.KITKAT)
+//    @TargetApi(Build.VERSION_CODES.KITKAT)
     private fun readMessages(intent: Intent): Array<SmsMessage> {
         return Telephony.Sms.Intents.getMessagesFromIntent(intent)
     }
 
     private fun createSmsReceiver(events: EventSink): BroadcastReceiver {
         return object : BroadcastReceiver() {
-            @TargetApi(Build.VERSION_CODES.KITKAT)
+//            @TargetApi(Build.VERSION_CODES.KITKAT)
             override fun onReceive(context: Context, intent: Intent) {
                 try {
                     val msgs = readMessages(intent) ?: return
